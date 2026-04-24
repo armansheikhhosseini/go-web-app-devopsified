@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - "helm/**"
 
 jobs:
   build:
@@ -81,7 +79,7 @@ jobs:
 
       - name: Update image tag in Helm chart
         run: |
-          sed -i "s/tag: .*/tag: ${{ github.run_id }}/" helm/go-web-app-chart/values.yaml
+          sed -i 's/tag: .*/tag: "${{ github.run_id }}"/' helm/go-web-app-chart/values.yaml
 
       - name: Commit and push changes
         run: |
