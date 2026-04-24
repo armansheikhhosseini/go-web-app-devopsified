@@ -31,6 +31,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22.5'
+
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
@@ -83,4 +88,6 @@ jobs:
           git config --global user.email "thearmansh@gmail.com"
           git add helm/go-web-app-chart/values.yaml
           git commit -m "Update image tag to v${{ github.run_id }}"
-          git push
+          git push origin HEAD:main
+        env:
+          GITHUB_TOKEN: ${{ secrets.SEC_TOKEN }}
