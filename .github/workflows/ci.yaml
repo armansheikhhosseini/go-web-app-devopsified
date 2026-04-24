@@ -2,10 +2,10 @@ name: CI
 
 on:
   push:
-    branches: 
-        - main
+    branches:
+      - main
     paths-ignore:
-        - "helm/**"
+      - "helm/**"
 
 jobs:
   build:
@@ -23,63 +23,64 @@ jobs:
 
       - name: Test
         run: go test -v ./...
-   
+
   code_quaility:
     runs-on: ubuntu-latest
-    
+
     steps:
-        - name: Checkout repository
-          uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-        - name: Run golangci-lint
-          uses: golangci/golangci-lint-action@v6
-          with:
-            version: v1.56.2
-    push:
-        runs-on: ubuntu-latest
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.56.2
 
-        needs: build
+  push:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+    needs: build
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v2
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-            - name: Log in to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                username: ${{ secrets.DOCKER_USERNAME }}
-                password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-            - name: Build and push Docker image
-              uses: docker/build-push-action@v6
-              with:
-                context: .
-                file: ./Dockerfile
-                push: true
-                tags: ${{ secrets.DOCKER_USERNAME }}/go-web-app:${{ github.run_id}}
-        update-newtag-in-helm-chart:
-            runs-on: ubuntu-latest
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-            needs: push
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/go-web-app:${{ github.run_id }}
 
-            steps:
-                - name: Checkout repository
-                  uses: actions/checkout@v4
-                  with:
-                    token: ${{ secrets.SEC_TOKEN }}
+  update-newtag-in-helm-chart:
+    runs-on: ubuntu-latest
 
+    needs: push
 
-                - name: Update image tag in Helm chart
-                  run: |
-                    sed -i "s/tag: .*/tag: v${{ github.run_id }}/" helm/go-web-app-chart/values.yaml
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.SEC_TOKEN }}
 
-                - name: Commit and push changes
-                  run: |
-                    git config --global user.name "armansheikhhosseini"
-                    git config --global user.email "thearmansh@gmail.com"
-                    git add helm/go-web-app-chart/values.yaml
-                    git commit -m "Update image tag to v${{ github.run_id }}"
-                    git push 
+      - name: Update image tag in Helm chart
+        run: |
+          sed -i "s/tag: .*/tag: v${{ github.run_id }}/" helm/go-web-app-chart/values.yaml
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "armansheikhhosseini"
+          git config --global user.email "thearmansh@gmail.com"
+          git add helm/go-web-app-chart/values.yaml
+          git commit -m "Update image tag to v${{ github.run_id }}"
+          git push
