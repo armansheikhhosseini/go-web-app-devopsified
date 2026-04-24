@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: armansheikhhosseini/go-web-app
-  tag: "24914343110"
+  tag: "24914381744"
   pullPolicy: IfNotPresent
 
 ingress:
